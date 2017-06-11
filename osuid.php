@@ -15,5 +15,5 @@ $effective_url=curl_getinfo($curl,CURLINFO_EFFECTIVE_URL);
 curl_close($curl);
 $userid=str_replace('https://osu.ppy.sh/users/','',$effective_url);
 if (!is_numeric($userid)) { die("User Not Found!\n"); }
-echo "Your User ID:".$userid.".\n";
+echo "{$username}'s ID:{$userid}\n";
 ?>
