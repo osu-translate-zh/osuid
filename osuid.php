@@ -1,24 +1,19 @@
 <?php
-    print("Enter username:");
-
-    $username = trim(fgets(STDIN));
-    $userid = '';
-
-    $curl = curl_init();
-
-    curl_setopt($curl, CURLOPT_URL, "https://osu.ppy.sh/users/{$username}");
-    curl_setopt($curl, CURLOPT_HEADER, 0);
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-
-    $data = curl_exec($curl);
-
-    curl_close($curl);
-
-    if(0 == preg_match('/"https:\\/\\/osu.ppy.sh\\/users\\/([0-9]*)"/', $data, $userid)){
-        die('User Not Found!');
-    }
-
-    print("Userid:");
-    print_r($userid[1]);
-    print("\n")
+error_reporting(0);
+print("Enter Username:");
+$username=trim(fgets(STDIN));
+if ($username === '') { die("Please Enter Your Username.\n"); }
+$curl=curl_init();
+curl_setopt($curl,CURLOPT_URL,"https://osu.ppy.sh/users/$username");
+curl_setopt($curl,CURLOPT_HEADER,1);
+curl_setopt($curl,CURLOPT_NOBODY,1);
+curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
+curl_setopt($curl,CURLOPT_SSL_VERIFYPEER,0);
+curl_setopt($curl,CURLOPT_FOLLOWLOCATION,1);
+curl_exec($curl);
+$effective_url=curl_getinfo($curl,CURLINFO_EFFECTIVE_URL);
+curl_close($curl);
+$userid=str_replace('https://osu.ppy.sh/users/','',$effective_url);
+if (!is_numeric($userid)) { die("User Not Found!\n"); }
+echo "Your User ID:".$userid.".\n";
 ?>
