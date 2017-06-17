@@ -1,12 +1,9 @@
 # osuid
-
-A quick way to get user's id on osu-web (osu!wiki tool)
-
+A quick way to get user's id on osu-web (osu!wiki tool).
 ## Usage
-
 ```bash
-php osuid.php #Then follow the CLI note
+php osuid.php
 ```
-
-## Dependency
-- php-curl
+Then follow the CLI note.
+## Parameter
+-k Use osu!API
