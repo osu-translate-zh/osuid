@@ -1,5 +1,6 @@
 <?php
 error_reporting(0);
+$apikey=0;
 function get_userid($username,$apikey) {
 	if ($apikey) {
 		$json=json_decode(file_get_contents("https://osu.ppy.sh/api/get_user?k=$apikey&u=$username"));
