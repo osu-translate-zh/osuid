@@ -13,4 +13,5 @@ Then follow the CLI note.
 ## Parameter
 
 -c # Tell osuid that you will use curl.
+
 -k # Tell osuid that you will use osu!API key.
