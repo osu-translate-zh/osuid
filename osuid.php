@@ -1,5 +1,5 @@
 <?php
-error_reporting(0);
+//error_reporting(0);
 $opt=getopt('ck');
 function fallback($url,$api=0) {
 	echo "Warning:Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
