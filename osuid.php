@@ -1,5 +1,6 @@
 <?php
 $apikey=0;
+error_reporting(0);
 class osuid {
 	private static function fallback($url,$api=0) {
 		if (PHP_SAPI === 'cli') {
