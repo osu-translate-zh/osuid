@@ -1,4 +1,5 @@
 <?php
+error_reporting(0);
 $apikey=0;
 class osuid {
 	private static function fallback($url,$api=0) {
