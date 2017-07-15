@@ -33,11 +33,9 @@ public static function get_userid($username,$apikey=0) {
 			$out=self::fallback($url,1);
 		}
 		$json=json_decode($out);
-		if (count($json)) {
-			$info['userid']=$json[0]->user_id;
-			$info['username']=$json[0]->username;
-			return $info;
-		}
+		$info['userid']=(isset($json[0]->user_id)) ? $json[0]->user_id : 0;
+		$info['username']=(isset($json[0]->username)) ? $json[0]->username : $username;
+		return $info;
 	}
 	stream_context_set_default(array('http'=>array('method'=>'HEAD')));
 	$url="https://osu.ppy.sh/users/$username";
