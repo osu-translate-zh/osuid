@@ -1,8 +1,10 @@
 <?php
-//error_reporting(0);
-$opt=getopt('ck');
-function fallback($url,$api=0) {
-	echo "Warning:Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
+$apikey=0;
+class osuid {
+private static function fallback($url,$api=0) {
+	if (PHP_SAPI === 'cli') {
+		echo "Warning:Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
+	}
 	$curl=curl_init();
 	curl_setopt($curl,CURLOPT_URL,$url);
 	curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
@@ -20,7 +22,7 @@ function fallback($url,$api=0) {
 	curl_close($curl);
 	return $eurl;
 }
-function get_userid($username,$apikey=0) {
+public static function get_userid($username,$apikey=0) {
 	global $opt;
 	if ($apikey) {
 		$url="https://osu.ppy.sh/api/get_user?k=$apikey&u=$username";
@@ -28,7 +30,7 @@ function get_userid($username,$apikey=0) {
 			$out=file_get_contents($url);
 		}
 		if (!isset($out)) {
-			$out=fallback($url,1);
+			$out=self::fallback($url,1);
 		}
 		$json=json_decode($out);
 		if (count($json)) {
@@ -43,27 +45,32 @@ function get_userid($username,$apikey=0) {
 		$userlink=@get_headers($url,1);
 	}
 	if (!isset($userlink)) {
-		$userlink['Location']=fallback($url);
+		$userlink['Location']=self::fallback($url);
 	}
-	$info['userid']=str_replace('https://osu.ppy.sh/users/','',$userlink['Location']);
+	$info['userid']=(isset($userlink['Location'])) ? str_replace('https://osu.ppy.sh/users/','',$userlink['Location']) : 0;
+	$info['username']=$username;
 	return $info;
 }
-echo "Enter Username:";
-$username=trim(fgets(STDIN));
-if (empty($username)) {
-	die("Please Enter Your Username.\n");
 }
-if (isset($opt['k'])) {
-	echo "Enter APIKey:";
-	$apikey=trim(fgets(STDIN));
-	if (!$apikey) {
-		die("Please Enter Your APIKey.\n");
+if (PHP_SAPI === 'cli') {
+	$opt=getopt('ck');
+	echo "Enter Username:";
+	$username=trim(fgets(STDIN));
+	if (empty($username)) {
+		die("Please Enter Your Username.\n");
 	}
+	if (isset($opt['k'])) {
+		echo "Enter APIKey:";
+		$apikey=trim(fgets(STDIN));
+		if (!$apikey) {
+			die("Please Enter Your APIKey.\n");
+		}
+	}
+	$info=osuid::get_userid($username,$apikey);
+	if (!$info['userid']) {
+		die("User Not Found!\n");
+	}
+	$username=$info['username'];
+	echo "$username's ID:".$info['userid']."\n";
 }
-$info=get_userid($username,$apikey);
-if (!$info['userid']) {
-	die("User Not Found!\n");
-}
-$username=(!$info['username']) ? $username : $info['username'];
-echo "$username's ID:".$info['userid']."\n";
 ?>
