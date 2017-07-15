@@ -20,7 +20,6 @@ class osuid {
 		curl_setopt($curl,CURLOPT_FOLLOWLOCATION,1);
 		curl_exec($curl);
 		$eurl=curl_getinfo($curl,CURLINFO_EFFECTIVE_URL);
->>>>>>> dev
 		curl_close($curl);
 		return $eurl;
 	}
