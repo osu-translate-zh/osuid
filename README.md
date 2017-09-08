@@ -2,18 +2,16 @@
 
 A quick way to get user's id on osu-web (osu!wiki tool).
 
-You can include/require it in your php file.
+You can include/require it in your program.
 
 ## Usage
 
 ```bash
-php osuid.php
+osuid.exe
 ```
 
 Then follow the CLI note.
 
 ## Parameter
 
--c # Tell osuid that you will use curl.
-
--k # Tell osuid that you will use osu!API key.
+What's this?
