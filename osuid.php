@@ -39,7 +39,7 @@ class osuid {
 			return $info;
 		}
 		stream_context_set_default(array('http'=>array('method'=>'HEAD')));
-		$url="https://osu.ppy.sh/users/$username";
+		$url="http://osu.ppy.sh/users/$username";
 		if (!isset($opt['c'])) {
 			$userlink=@get_headers($url,1);
 		}
