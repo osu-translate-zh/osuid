@@ -41,9 +41,9 @@ class osuid {
 		stream_context_set_default(array('http'=>array('method'=>'HEAD')));
 		$url="http://osu.ppy.sh/users/$username";
 		if (!isset($opt['c'])) {
-			$userlink=@get_headers($url,1);
+			$userlink=get_headers($url,1);
 		}
-		if (!isset($userlink)) {
+		if (!$userlink) {
 			$userlink['Location']=self::fallback($url);
 		}
 		$info['userid']=(isset($userlink['Location'])) ? str_replace('https://osu.ppy.sh/users/','',$userlink['Location']) : 0;
