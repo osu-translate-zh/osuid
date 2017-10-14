@@ -1,8 +1,11 @@
 <?php
 $apikey=0;
+$useragent='osuid';
 error_reporting(0);
+ini_set('user_agent',$useragent);
 class osuid {
 	private static function fallback($url,$api=0) {
+		global $useragent;
 		if (PHP_SAPI === 'cli') {
 			echo "Warning:Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
 		}
@@ -10,6 +13,7 @@ class osuid {
 		curl_setopt($curl,CURLOPT_URL,$url);
 		curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($curl,CURLOPT_SSL_VERIFYPEER,0);
+		curl_setopt($curl,CURLOPT_USERAGENT,$useragent);
 		if ($api) {
 			$out=curl_exec($curl);
 			curl_close($curl);
