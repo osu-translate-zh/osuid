@@ -1,14 +1,13 @@
 <?php
 $apiKey=0;
-$userAgent='osuid';
 error_reporting(0);
-ini_set('user_agent',$userAgent);
+define('UserAgent','osuid');
 define('osuAPIPrefix','https://osu.ppy.sh/api/');
 define('UserLinkPrefix','https://osu.ppy.sh/u/');
 define('NewUserLinkPrefix','https://osu.ppy.sh/users/');
+ini_set('user_agent',UserAgent);
 class osuid {
 	private static function fallback($url,$api=0) {
-		global $userAgent;
 		if (strtolower(PHP_SAPI) === 'cli') {
 			echo "Warning: Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
 		}
@@ -16,7 +15,7 @@ class osuid {
 		curl_setopt($curl,CURLOPT_URL,$url);
 		curl_setopt($curl,CURLOPT_RETURNTRANSFER,1);
 		curl_setopt($curl,CURLOPT_SSL_VERIFYPEER,0);
-		curl_setopt($curl,CURLOPT_USERAGENT,$userAgent);
+		curl_setopt($curl,CURLOPT_USERAGENT,UserAgent);
 		if ($api) {
 			$out=curl_exec($curl);
 			curl_close($curl);
@@ -30,44 +29,64 @@ class osuid {
 		curl_close($curl);
 		return $eurl;
 	}
-	public static function get_userid($username,$apiKey=0) {
+	public static function setUserLink($userID) {
+		$userLink=UserLinkPrefix."{$userID}";
+		$newUserLink=NewUserLinkPrefix."{$userID}";
+		return array($userLink,$newUserLink);
+	}
+	public static function getUserInfo($usernameArr,$apiKey=0) {
 		global $opt;
-		if (!empty($apiKey)) {
-			$url=osuAPIPrefix."get_user?k={$apiKey}&u={$username}";
-			if (!isset($opt['c'])) {
-				$out=file_get_contents($url);
+		foreach ($usernameArr as $username) {
+			$username=trim($username);
+			if (!empty($apiKey)) {
+				$url=osuAPIPrefix."get_user?k={$apiKey}&u={$username}";
+				if (!isset($opt['c'])) {
+					$out=file_get_contents($url);
+				}
+				if (!isset($out)) {
+					$out=self::fallback($url,1);
+				}
+				$json=json_decode($out);
+				if (isset($json[0]->username)) {
+					$username=$json[0]->username;
+				}
+				$allUsersInfo[$username]['UserID']=(isset($json[0]->user_id)) ? $json[0]->user_id : 0;
+				if (empty($allUsersInfo[$username]['UserID'])) {
+					continue;
+				}
+				if (isset($json[0]->country)) {
+					$allUsersInfo[$username]['Country']=strtoupper($json[0]->country);
+				}
+			} else {
+				stream_context_set_default(array('http'=>array('method'=>'HEAD')));
+				$url="http://osu.ppy.sh/users/{$username}";
+				if (!isset($opt['c'])) {
+					$userLinkHeaders=get_headers($url,1);
+				}
+				if (!$userLinkHeaders) {
+					$userLinkHeaders['Location']=self::fallback($url);
+				}
+				$allUsersInfo[$username]['UserID']=(isset($userLinkHeaders['Location'])) ? str_replace('https://osu.ppy.sh/users/','',$userLinkHeaders['Location']) : 0;
 			}
-			if (!isset($out)) {
-				$out=self::fallback($url,1);
-			}
-			$json=json_decode($out);
-			$info['UserID']=(isset($json[0]->user_id)) ? $json[0]->user_id : 0;
-			$info['Username']=(isset($json[0]->username)) ? $json[0]->username : $username;
-			if (isset($json[0]->country)) {
-				$info['Country']=strtoupper($json[0]->country);
-			}
-			return $info;
 		}
-		stream_context_set_default(array('http'=>array('method'=>'HEAD')));
-		$url="http://osu.ppy.sh/users/{$username}";
-		if (!isset($opt['c'])) {
-			$userLinkHeaders=get_headers($url,1);
+		return $allUsersInfo;
+	}
+	public static function getMarkdownFormat($username,$userLink,$country=0) {
+		$markdownFormat="[{$username}]({$userLink})";
+		if ($country) {
+			$markdownFormat="![][flag_{$country}] {$markdownFormat}";
 		}
-		if (!$userLinkHeaders) {
-			$userLinkHeaders['Location']=self::fallback($url);
-		}
-		$info['UserID']=(isset($userLinkHeaders['Location'])) ? str_replace('https://osu.ppy.sh/users/','',$userLinkHeaders['Location']) : 0;
-		$info['Username']=$username;
-		return $info;
+		return $markdownFormat;
 	}
 }
 if (PHP_SAPI === 'cli') {
 	$opt=getopt('ck');
 	echo "Enter Username: ";
-	$username=trim(fgets(STDIN));
-	if (empty($username)) {
+	$input=trim(fgets(STDIN));
+	if (empty($input)) {
 		die("Please Enter Your Username.\n");
 	}
+	$usernameArr=explode(',',$input);
 	if (file_exists('APIKey')) {
 		$apiKey=trim(file_get_contents('APIKey'));
 	} elseif (isset($opt['k'])) {
@@ -77,23 +96,17 @@ if (PHP_SAPI === 'cli') {
 			die("Please Enter Your APIKey.\n");
 		}
 	}
-	$info=osuid::get_userid($username,$apiKey);
-	if (!$info['UserID']) {
+	$allUsersInfo=osuid::getUserInfo($usernameArr,$apiKey);
+	if (!$allUsersInfo || count($allUsersInfo) < 1) {
 		die("User Not Found!\n");
 	}
-	$username=$info['Username'];
-	unset($info['Username']);
-	$userLink=UserLinkPrefix."{$info['UserID']}";
-	$newUserLink=NewUserLinkPrefix."{$info['UserID']}";
-	$markdownFormat="[{$username}]({$newUserLink})";
-	if (isset($info['Country'])) {
-		$markdownFormat="![][flag_{$info['Country']}] {$markdownFormat}";
+	foreach ($allUsersInfo as $username => $userInfo) {
+		echo "{$username}:\n";
+		list($userInfo['UserLink'],$userInfo['NewUserLink'])=osuid::setUserLink($userInfo['UserID']);
+		$userInfo['Markdown Format']=osuid::getMarkdownFormat($username,$userInfo['NewUserLink'],((isset($userInfo['Country'])) ? $userInfo['Country'] : 0));
+		foreach ($userInfo as $key => $value) {
+			echo "	{$key}: {$value}\n";
+		}
 	}
-	foreach ($info as $key => $value) {
-		echo "{$username}'s {$key}: {$value}\n";
-	}
-	echo "{$username}'s UserLink: {$userLink}\n";
-	echo "{$username}'s NewUserLink: {$newUserLink}\n";
-	echo "Markdown Format: {$markdownFormat}\n";
 }
 ?>
