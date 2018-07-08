@@ -57,6 +57,9 @@ class osuid {
 				if (isset($json[0]->country)) {
 					$allUsersInfo[$username]['Country']=strtoupper($json[0]->country);
 				}
+				if (isset($json[0]->pp_raw)) {
+					$allUsersInfo[$username]['Performance Point']=strtoupper($json[0]->country);
+				}
 			} else {
 				stream_context_set_default(array('http'=>array('method'=>'HEAD')));
 				$url="http://osu.ppy.sh/users/{$username}";
