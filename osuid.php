@@ -6,9 +6,12 @@ define('osuAPIPrefix','https://osu.ppy.sh/api/');
 define('UserLinkPrefix','https://osu.ppy.sh/u/');
 define('NewUserLinkPrefix','https://osu.ppy.sh/users/');
 ini_set('user_agent',UserAgent);
+$isWarned=0;
 class osuid {
 	private static function fallback($url,$api=0) {
-		if (strtolower(PHP_SAPI) === 'cli') {
+		global $isWarned;
+		if (!$isWarned && strtolower(PHP_SAPI) === 'cli') {
+			$isWarned=1;
 			echo "Warning: Your PHP/Network is not working properly or you use -c parameter! Use fallback mode now!\n";
 		}
 		$curl=curl_init();
@@ -36,6 +39,7 @@ class osuid {
 	}
 	public static function getUserInfo($usernameArr,$apiKey=0) {
 		global $opt;
+		$allUsersInfo=array();
 		foreach ($usernameArr as $username) {
 			$username=trim($username);
 			if (!empty($apiKey)) {
@@ -57,6 +61,9 @@ class osuid {
 				if (isset($json[0]->country)) {
 					$allUsersInfo[$username]['Country']=strtoupper($json[0]->country);
 				}
+				if (isset($json[0]->pp_raw)) {
+					$allUsersInfo[$username]['Performance Point']=strtoupper($json[0]->pp_raw);
+				}
 			} else {
 				stream_context_set_default(array('http'=>array('method'=>'HEAD')));
 				$url="http://osu.ppy.sh/users/{$username}";
@@ -68,6 +75,7 @@ class osuid {
 				}
 				$allUsersInfo[$username]['UserID']=(isset($userLinkHeaders['Location'])) ? str_replace('https://osu.ppy.sh/users/','',$userLinkHeaders['Location']) : 0;
 			}
+			unset($url,$out,$json,$userLinkHeaders);
 		}
 		return $allUsersInfo;
 	}
