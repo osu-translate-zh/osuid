@@ -47,7 +47,7 @@ class osuid {
 				if (!isset($opt['c'])) {
 					$out=file_get_contents($url);
 				}
-				if (!isset($out)) {
+				if (empty($out)) {
 					$out=self::fallback($url,1);
 				}
 				$json=json_decode($out);
