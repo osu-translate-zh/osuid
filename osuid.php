@@ -47,7 +47,7 @@ class osuid {
 				if (!isset($opt['c'])) {
 					$out=file_get_contents($url);
 				}
-				if (!isset($out)) {
+				if (empty($out)) {
 					$out=self::fallback($url,1);
 				}
 				$json=json_decode($out);
@@ -112,6 +112,10 @@ if (PHP_SAPI === 'cli') {
 		echo "{$username}:\n";
 		list($userInfo['UserLink'],$userInfo['NewUserLink'])=osuid::setUserLink($userInfo['UserID']);
 		$userInfo['Markdown Format']=osuid::getMarkdownFormat($username,$userInfo['NewUserLink'],((isset($userInfo['Country'])) ? $userInfo['Country'] : 0));
+		if (empty($userInfo['UserID'])) {
+			echo "	User Not Found!\n";
+			continue;
+		}
 		foreach ($userInfo as $key => $value) {
 			echo "	{$key}: {$value}\n";
 		}
